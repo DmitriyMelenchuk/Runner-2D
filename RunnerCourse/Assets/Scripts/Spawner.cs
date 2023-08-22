@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class Spawner : ObjectPool
@@ -6,26 +7,27 @@ public class Spawner : ObjectPool
     [SerializeField] private Transform[] _point;
     [SerializeField] private float _secondsBetweenSpawn;
 
-    private float _elapsedTime;
-
-    private void Update()
+    public void Initialize()
     {
-        _elapsedTime += Time.deltaTime;
+        Initialize(_template); 
+        StartCoroutine(DelaySpawn());
+    }
 
-        if (_elapsedTime >= _secondsBetweenSpawn)
+    private IEnumerator DelaySpawn()
+    {
+        var waitForSeconds = new WaitForSeconds(_secondsBetweenSpawn);
+
+        while (true)
         {
             if (TryGetObject(out GameObject gameObject))
             {
-                _elapsedTime = 0;
                 int spawnPointNumber = Random.Range(0, _point.Length);
+                yield return waitForSeconds;
                 SetObject(gameObject, _point[spawnPointNumber].position);
             }
-        }
-    }
 
-    public void Initialize()
-    {
-        Initialize(_template);
+            yield return null;
+        }      
     }
 
     private void SetObject(GameObject gameObject, Vector3 spawnPoint)
